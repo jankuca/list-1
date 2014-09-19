@@ -61,7 +61,10 @@ done <<< "$changes"
 change_filenames=$(echo "$change_filenames" | grep -v "/" | sort)
 deleted_filenames=$(diff <(echo "$lines") <(echo "$change_filenames") | grep "^>")
 
-echo ""
+if [ "$deleted_filenames" != "> " ]; then
+  echo ""
+fi
+
 while read -r deleted_filename; do
   if [ "$deleted_filename" = ">" ]; then
     continue
