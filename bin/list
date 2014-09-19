@@ -1,0 +1,71 @@
+#!/bin/bash
+
+paths="$@"
+if [ -z "$paths" ]; then
+  paths="."
+fi
+
+lines=$(ls -ap $paths)
+line_number=0
+
+changes=$(git status --porcelain --ignored -- $paths 2> /dev/null)
+
+while read -r line; do
+  line_number=$[$line_number + 1]
+  if [ $line_number = 1 ]; then
+    echo ""
+  fi
+  if [ $line_number -lt 3 ]; then
+    continue
+  fi
+
+  change_line=$(grep -F "$line" <<< "$changes");
+  change=$(echo "$change_line" | cut -d' ' -f 1)
+
+  if [ "$change" != "" ]; then
+    if [ "$change" = "!!" ]; then
+      echo -e "\033[2;37m  - \033[2;37m$line\033[0m"
+    elif [ "$change" = "??" ]; then
+      echo -e "\033[2;37m  - \033[0m$line \033[2;37m* \033[2;36mnew\033[0m"
+    elif [ "${change##A}" != "$change" ]; then
+      echo -e "\033[2;37m  - \033[0m$line \033[2;37m* \033[2;36mnew\033[0m"
+    elif [ "${change##M}" != "$change" ]; then
+      echo -e "\033[2;37m  - \033[0m$line \033[2;37m* \033[2;36mmodified\033[0m"
+    elif [ "${change##U}" != "$change" ]; then
+      echo -e "\033[2;37m  - \033[0m$line \033[2;37m* \033[2;36mmodified\033[0m"
+    elif [ "${change##R}" != "$change" ]; then
+      echo -e "\033[2;37m  - \033[0m$line \033[2;37m* \033[2;36mrenamed\033[0m"
+    elif [ "${change##C}" != "$change" ]; then
+      echo -e "\033[2;37m  - \033[0m$line \033[2;37m* \033[2;36mcopied\033[0m"
+    else
+      echo -e "\033[2;37m  - \033[0m$line \037[2;37m*\033[0m"
+    fi
+  else
+    echo -e "\033[2;37m  - \033[0m$line\033[0m"
+  fi
+done <<< "$lines"
+
+
+change_filenames=""
+while read -r change_line; do
+  filename=$(echo "$change_line" | cut -d' ' -f 3)
+  if [ -z "$filename" ]; then
+    filename=$(echo "$change_line" | cut -d' ' -f 2)
+  fi
+  if [ ! -z "$filename" ]; then
+    change_filenames="$change_filenames$filename
+"
+  fi
+done <<< "$changes"
+
+change_filenames=$(echo "$change_filenames" | grep -v "/" | sort)
+deleted_filenames=$(diff <(echo "$lines") <(echo "$change_filenames") | grep "^>")
+
+echo ""
+while read -r deleted_filename; do
+  if [ "$deleted_filename" = ">" ]; then
+    continue
+  fi
+
+  echo -e "\033[2;37m  - \033[2;31m${deleted_filename##> } \033[2;37m* \033[2;36mdeleted\033[0m"
+done <<< "$deleted_filenames"
