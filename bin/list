@@ -40,6 +40,8 @@ while read -r line; do
     else
       echo -e "\033[2;37m  - \033[0m$line \033[2;37m*\033[0m"
     fi
+  elif [ "$line" = ".git/" ]; then
+    echo -e "\033[2;37m  - \033[2;37m$line\033[0m"
   else
     echo -e "\033[2;37m  - \033[0m$line\033[0m"
   fi
