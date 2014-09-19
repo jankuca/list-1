@@ -1,7 +1,7 @@
 {
   "name": "list-1",
+  "version": "1.0.1",
   "description": "list(1) - lists files in a directory and adds git status",
-  "version": "1.0.0",
   "bin": {
     "list": "bin/list",
     "list-1": "bin/list"
