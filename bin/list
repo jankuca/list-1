@@ -19,8 +19,8 @@ while read -r line; do
     continue
   fi
 
-  change_line=$(grep -F "$line" <<< "$changes");
-  change=$(echo "$change_line" | cut -d' ' -f 1)
+  change_line=$(grep " ${line//./\\.}"'$' <<< "$changes");
+  read -r change <<< "$(echo "$change_line" | cut -d' ' -f 1)"
 
   if [ "$change" != "" ]; then
     if [ "$change" = "!!" ]; then
